@@ -1,0 +1,503 @@
+Краткая инструкция создания проекта ASP .NET Core
+Создаем пустой ASP.NET Core
+В проекте создаем класс Startup
+
+В главном файле Program изменяем содержимое на:
+internal class Program
+{
+    private static void Main(string[] args)
+    {
+        CreateHostBuilder(args).Build().Run();
+    }
+
+    public static IHostBuilder CreateHostBuilder(string[] args) =>
+    Host.CreateDefaultBuilder(args)
+        .ConfigureWebHostDefaults(webBuilder =>
+        {
+            webBuilder.UseStartup<Startup>();
+        });
+}
+Подключение библиотек и установка плагинов
+Вызвать управление пакетами NuGet по нажатию на «Решение» проекта.
+Скачать плагин: Microsoft.AspNetCore.StaticFiles (Для работы со статическими файлами (изображения, стили))
+Скачать плагин : Microsoft.AspNet.Mvc (Необходим для модели Mvc, модель контроля)
+Создание модели
+Модель - это некий объект, который содержит в себе ряд полей и их значений.
+Правый клик по названию проект – добавить – создать папку Data – в ней создать папку – Models
+Чтобы создать модель или контроллер, необходимо создать класс.
+По папке Model правый клик – Добавить – Создать элемент – Класс
+Создание интерфейсов для получения данных
+В папке Data создать папку Interfaces.
+В папке Interfaces клик – Добавить – Создать элемент – Интерфейс – указать имя созданных ранее классов:
+Создание модуля для передачи данных в html
+Создать в проекте папку ViewModels
+Создать в папке класс PerformingListViewModel, где Perform – это название нашей сущности.
+Контроллеры
+Позволяют соединить логику программы с view компонентами.
+В проекте, возле папки Data, необходимо создать папку Controllers, в ней класс: GenriesController
+HTML шаблон
+В проекте необходимо создать папку Views, в ней создать папку с названием существующих контроллеров, без слова Controller. 
+В созданной папке сделать правый клик и добавить новый элемент – Представление.
+Имя представление указать как и имя функции заданного контроллера.
+C# код в созданном файле вынесен в отдельные скобки: @{}
+Шаблон файла выглядит следующим образом:
+@{
+    // открытый C# код
+    Layout = null;// главного шаблона нет
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width-device-width"/>
+    <title>List</title>
+</head>
+<body>
+</body>
+</html>
+
+Файлы для импорта
+В папке Views создать папку Shared
+В данной папке будут храниться шаблоны с html кодом
+В папке Shared необходимо создать ASP.NET Core «макет Razor», оставить имя «_Layout.cshtml». Это шаблон, в который будет подгружаться необходимый контент из List.cshtml.
+В папке Views создать элемент из ASP.NET Core «Запуск представления Razor», создать с предлагаемым именем.
+
+Создание дополнительного файла, где будут импортированы все модели
+В папку Views добавить элемент из ASP.NET Core «Импорт представлений Razor», имя оставить без изменений.
+
+Работа со стилями
+В проекте должна быть папка: wwwroot, в которой есть папки css/js/img
+Если ее нет, тогда создадим ее в папке с проектом.
+
+Работа с фреймворком MVC
+Клик по проекту – управление пакетами NuGet:
+Установка пакета «EntityFramework»
+Установка пакета «JSON»
+Установка пакета «EntityFrameworkCore»
+Установка пакета «EntityFrameworkCore.SqlServer»
+Если с установкой пакетов возникнут сложности, попробовать выбрать другую версию.
+Необходимо создать файл формата JSON для хранения строки подключения к БД.
+В папке проекта создать элемент из раздела Веб «Файл параметров приложения» - dbsettings.json
+В полученной строке нужно изменить только название базы данных.
+В Sturtup файле будут получатся значения параметров строки подключения.
+
+Классы для реализации интерфейсов
+С использованием БД нам необходимо создать БД в которой будут классы для получения данных из БД.
+В папке Data создать папку Repository – создать классы для реализации интерфейсов:
+PerformingRepository, GrenreRepository
+
+Создание базы данных
+Вид – другие окна – консоль диспетчера пакетов
+Прописать:
+Install-Package Microsoft.EntityFrameworkCore.Tools
+Прописать : (Где Initial – произвольное название)
+EntityFrameworkCore\Add-Migration Initial
+Или
+EntityFramework6\Add-Migration Initial
+Add-Migration Initial
+или
+Add-Migration Initial -context DataContextName
+Если будут ошибки при установке, попробовать установить NuGet:
+Install-Package Microsoft.EntityFrameworkCore.Tools –Version 2.0.1
+
+Для успешной установки, необходимо прописать метод в файл: Startup
+public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<AppDBContent>
+{
+    public AppDBContent CreateDbContext(string[] args)
+    {
+        IConfigurationRoot configuration = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json")
+            .Build();
+
+        var builder = new DbContextOptionsBuilder<AppDBContent>();
+
+        var connectionString = configuration.GetConnectionString("DefaultConnection");
+
+        builder.UseSqlServer(connectionString);
+
+        return new AppDBContent(builder.Options);
+    }
+}
+Если все установилось хорошо, в проекте появится папка: Migrations с файлами.
+На основе файлов, которые находятся в папке Migrations мы могли создать БД и таблицы к ней.
+Теперь необходимо выполнить команду для создания БД и таблиц. Поля таблиц будут взяты из файла Initial
+EntityFrameworkCore\Update-Database
+Напишет: Build succeeded
+
+
+
+
+
+ 
+Пошаговое руководство настройки проекта
+В функции Configure  необходимо прописать следующий код и запустить проект, чтобы убедиться, что сайт работает:
+public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+{
+    // проверяет, находимся ли мы в режиме разработки
+    if (env.IsDevelopment())
+    {
+        // отображение страниц с ошибками
+        app.UseDeveloperExceptionPage();
+    }
+    else
+    {
+        app.UseExceptionHandler("/Error");
+        // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+        app.UseHsts();
+    }
+
+    // зайти в свойства проекта - Отладка - в разделе параметры среды, вместо Development - режим разработки, написать Production - это режим готовой реализации 
+    if (env.IsProduction())
+    {
+        app.Run(async (context) => {
+            await context.Response.WriteAsync("Production!");
+        });
+    }
+
+    app.UseHttpsRedirection();
+    app.UseStaticFiles();
+
+    app.UseRouting();
+
+    app.UseAuthorization();
+
+    app.UseEndpoints(endpoints =>
+    {
+        endpoints.MapRazorPages();
+    });
+
+
+    // отображение страниц с ошибками
+    app.UseDeveloperExceptionPage();
+    // отображение кодов страниц (404, 500 и т.д.)
+    app.UseStatusCodePages();
+    // использование статических файлов (отображать css, картинки и т.д.)
+    app.UseStaticFiles();
+    // использование url адреса, который вызывает контроллер по умолчанию
+    // если неуказан в url адресе полный путь к файлу, который необходимо отобразить, тогда будет отображаться файл по умолчанию
+    app.UseMvcWithDefaultRoute();
+}
+Для разработки проекта, должен стоять режим Development и данную функцию необходимо записать следующий текст.
+public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+{
+    // отображение страниц с ошибками
+    app.UseDeveloperExceptionPage();
+    // отображение кодов страниц (404, 500 и т.д.)
+    app.UseStatusCodePages();
+    // использование статических файлов (отображать css, картинки и т.д.)
+    app.UseStaticFiles();
+    // использование url адреса, который вызывает контроллер по умолчанию
+    // если неуказан в url адресе полный путь к файлу, который необходимо отобразить, тогда будет отображаться файл по умолчанию
+    app.UseMvcWithDefaultRoute();
+
+}
+
+
+В следующей функции добавить Mvc:
+// служит для регистрации различных модулей и плагинов внутри проект
+public void ConfigureServices(IServiceCollection services)
+{
+    services.AddRazorPages();
+    services.AddMvc();// поддержка Mvc
+}
+
+Подключение библиотек и установка плагинов
+Вызвать управление пакетами NuGet по нажатию на «Решение» проекта.
+Скачать плагин: Microsoft.AspNetCore.StaticFiles (Для работы со статическими файлами (изображения, стили))
+Скачать плагин : Microsoft.AspNet.Mvc (Необходим для модели Mvc, модель контроля)
+
+Создание модели
+Модель - это некий объект, который содержит в себе ряд полей и их значений.
+Правый клик по названию проект – добавить – создать папку Data – в ней создать папку – Models
+Чтобы создать модель или контроллер, необходимо создать класс.
+По папке Model правый клик – Добавить – Создать элемент – Класс
+Пример классов:
+// класс - Жанр
+public class Genre
+{
+    // поля класса
+    public int id { set; get; }// код жанра
+    public string name { set; get; } // название жанра
+
+    // у жанра есть список из нескольких произведений
+    public List<Performing> works { set; get; }
+}
+// класс - Произведение
+public class Performing
+{
+    // поля класса
+    public int id { set; get; }// код произведения
+    public string title { set; get; } // название произведения
+    public DateTime dateOfPublication { set; get; } // дата публикации
+    public ushort rating { set; get; } // рейтинг от 0 до 100
+    public string img { set; get; }// url адрес изображения
+        
+        
+    // каждый объект "произведение" будет прикреплен к определенному жанру
+    public int genreID { set; get; } // код жанра
+    public virtual Genre Genre { set; get; }// объект на основе жанра
+
+}
+Создание интерфейсов для получения данных
+В папке Data создать папку Interfaces.
+В папке Interfaces клик – Добавить – Создать элемент – Интерфейс – указать имя: IPerfomingGenries.
+// интерфейс отображения всех произведений
+interface IAllPerfoming
+{
+    // возвращает список всех публикаций
+    IEnumerable<Performing> works { get; set; }
+    // возвращает некоторые публикации
+    //IEnumerable<Performing> getFavWorks { get; set; }
+    // возвращает товар по его ID
+    Performing getObjectWork(int id);
+}
+
+// интерфейс, отвечающий за получение всех жанров из модели Genre
+interface IPerfomingGenries
+{
+    // описание интерфейсов функций без реализации
+
+    // возвращает список жанров
+    IEnumerable<Genre> AllGenries { get; }
+}
+
+Классы для реализации интерфейсов
+Создание папки Mocks в папке Data. Данная папка необходима для содержания классов с реализацией функций, описанных в интерфейсах.
+// класс для реализации интерфейса IAllPerfoming
+public class MockPerforming : IAllPerfoming
+{
+    // переменная для получения списка всех жанров из модели Genre
+    private readonly IPerfomingGenries genrePerfoming = new MockGenries();
+
+    public IEnumerable<Performing> works
+    {
+        get
+        {
+            // возвращает список произведений
+            return new List<Performing>
+            {
+                new Performing{
+                        title = "Название 1",
+                        rating = 5, 
+                        img = "https://avatars.mds.yandex.net/get-kinopoisk-image/1600647/203f6651-6f25-46f3-804e-85d2073bacb3/1920x",
+                        Genre = genrePerfoming.AllGenries.First(),
+                        dateOfPublication = Convert.ToDateTime("01.12.2022")
+                    },
+                new Performing{ 
+                    title = "Название 2", 
+                    rating = 25, 
+                    img = "https://avatars.mds.yandex.net/get-kinopoisk-image/1946459/4eeb3f18-7212-4728-8257-1cfb2709b4a5/1920x", 
+                    Genre = genrePerfoming.AllGenries.Last(),
+                    dateOfPublication = Convert.ToDateTime("01.12.2022")
+                },
+            };
+        }
+    }
+        
+
+    // IEnumerable<Performing> getFavWorks { get; set; }
+    public Performing getObjectWork(int id)
+    {
+        return null;
+    }
+
+}
+
+// класс для реализации интерфейса IPerfomingGenries
+public class MockGenries : IPerfomingGenries
+{
+    // интерфейс, получающий список всех жанров из модели Genre
+    public IEnumerable<Genre> AllGenries {
+        get {
+
+            return new List<Genre> { 
+                new Genre { name = "Ужасы" },
+                new Genre { name = "Детектив" },
+                new Genre { name = "Триллер" },
+                new Genre { name = "История" },
+                new Genre { name = "Комедия" },
+                new Genre { name = "Мелодрамма" }
+            };
+        }
+    }
+}
+
+
+Контроллеры
+Позволяют соединить логику программы с view компонентами.
+В проекте, возле папки Data, необходимо создать папку Controllers, в ней класс: GenriesController
+    // класс - контроллер для работы с жанрами
+    public class GenriesController : Controller
+    {
+        // при вызове функций данного класса, будет возвращаеться тип ViewResult, объект которого содержит html страницу
+
+        // объявление переменных на интерфейсы
+        private readonly IAllPerfoming allPerfoming;
+        private readonly IPerfomingGenries allGenries;
+
+        // конструктор класса
+        public GenriesController(IAllPerfoming allPerfoming, IPerfomingGenries allGenries) {
+            // благорядя привязкам services.AddTransient классов к интерфейсам, передается интерфейс и с ним класс с объектами, который его реализует
+            this.allPerfoming = allPerfoming;
+            this.allGenries = allGenries;
+        }
+
+        // возвращает целую html страницу (возвращает список всех публикаций)
+        public ViewResult List() {
+            var perfomings = allPerfoming.works;// обращение через переменную интерфейса
+            return View(perfomings);// возвращает html страницу
+        }
+    }
+
+HTML шаблон
+В проекте необходимо создать папку Views, в ней создать папку с названием существующих контроллеров, без слова Controller. 
+В созданной папке сделать правый клик и добавить новый элемент – Представление.
+Имя представление указать как и имя функции заданного контроллера.
+C# код в созданном файле вынесен в отдельные скобки: @{}
+Шаблон файла выглядит следующим образом:
+@{
+    // открытый C# код
+    Layout = null;// главного шаблона нет
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width-device-width"/>
+    <title>List</title>
+</head>
+<body>
+</body>
+</html>
+Создание модуля для передачи данных в html
+Создать в проекте папку ViewModels
+Создать в папке класс PerformingListViewModel, где Perform – это название нашей сущности.
+    public class PerformingListViewModel
+    {
+        // функция, получающая все публикации
+        public IEnumerable<Performing> allPerformings { get; set; }
+
+        // функция получения и установки жанров
+        public string currentGenries { get; set; }
+    }
+
+Файлы для импорта
+В папке Views создать папку Shared
+В данной папке будут храниться шаблоны с html кодом
+В папке Shared необходимо создать ASP.NET Core «макет Razor», оставить имя «_Layout.cshtml». Это шаблон, в который будет подгружаться необходимый контент из List.cshtml.
+В папке Views создать элемент из ASP.NET Core «Запуск представления Razor», создать с предлагаемым именем.
+
+
+Создание дополнительного файла, где будут импортированы все подели
+В папку Views добавить элемент из ASP.NET Core «Импорт представлений Razor», имя оставить без изменений.
+
+
+Работа со стилями
+В проекте должна быть папка: wwwroot, в которой есть папки css/js/img
+Если ее нет, тогда создадим ее в папке с проектом.
+
+Работа с фреймворком MVC
+Клик по проекту – управление пакетами NuGet:
+Установка пакета «EntityFramework»
+Установка пакета «EntityFrameworkCore»
+Установка пакета «EntityFrameworkCore.SqlServer»
+Установка пакета «EntityFrameworkCore.SqlServer.Design»
+Установка пакета «JSON»
+Если с установкой пакетов возникнут сложности, попробовать выбрать другую версию.
+
+Создание класса для хранения настроек работы с БД
+В папке Data создаем класс AppDBContent.
+public class AppDBContent : Microsoft.EntityFrameworkCore.DbContext
+{
+        
+// консруктор класса
+public AppDBContent(DbContextOptions<AppDBContent> options) : base(options) {
+}
+
+// получение или установка произведений
+// DbSet - принимает модель, на основе которых будет создаваться различные объекты
+public DbSet<Performing> Performing { get; set; }
+
+// получение или установка жанров произведений
+public DbSet<Genre> Genries { get; set; }
+}
+
+Необходимо создать файл формата JSON для хранения строки подключения к БД.
+В папке проекта создать элемент из раздела Веб «Файл параметров приложения» - dbsettings.json
+В полученной строке нужно изменить только название базы данных.
+В Sturtup файле будут получатся значения параметров строки подключения.
+
+Хранение объектов для БД
+В первом случае были использованы моксы для хранения объектов, теперь с использованием БД нам необходимо создать БД в которой будут классы для получения данных из БД.
+В папке Data создать папку Repository – создать классы:
+PerformingRepository, GrenreRepository
+Создание базы данных
+
+Вид – другие окна – консоль диспетчера пакетов
+Прописать:
+Install-Package Microsoft.EntityFrameworkCore.Tools
+Прописать:
+EntityFrameworkCore\Add-Migration Initial
+Или
+Add-Migration Initial
+или
+Add-Migration Initial -context DataContextName
+Где Initial – произвольное название
+Если будут ошибки при установке, попробовать установить:
+Install-Package Microsoft.EntityFrameworkCore.Tools -Version 2.0.1
+
+
+
+
+Файл MockPerforming.cs из видео: 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using WebApplication.Data.Interfaces;
+using WebApplication.Data.Models;
+
+namespace WebApplication.Data.Mocks
+{
+    // класс для реализации интерфейса IAllPerfoming
+    public class MockPerforming : IAllPerfoming
+    {
+        // переменная для получения списка всех жанров из модели Genre
+        private readonly IPerfomingGenries genrePerfoming = new MockGenries();
+
+        public IEnumerable<Performing> works
+        {
+            get
+            {
+                // возвращает список произведений
+                return new List<Performing>
+                {
+                    new Performing{
+                            title = "Название 1",
+                            rating = 5, 
+                            img = "https://avatars.mds.yandex.net/get-kinopoisk-image/1600647/203f6651-6f25-46f3-804e-85d2073bacb3/1920x",
+                            Genre = genrePerfoming.AllGenries.First(),
+                            dateOfPublication = Convert.ToDateTime("01.12.2022")
+                        },
+                    new Performing{ 
+                        title = "Название 2", 
+                        rating = 25, 
+                        img = "https://avatars.mds.yandex.net/get-kinopoisk-image/1946459/4eeb3f18-7212-4728-8257-1cfb2709b4a5/1920x", 
+                        Genre = genrePerfoming.AllGenries.Last(),
+                        dateOfPublication = Convert.ToDateTime("01.12.2022")
+                    },
+                };
+            }
+        }
+        
+
+        // IEnumerable<Performing> getFavWorks { get; set; }
+        public Performing getObjectWork(int id)
+        {
+            return null;
+        }
+
+    }
+}
+
